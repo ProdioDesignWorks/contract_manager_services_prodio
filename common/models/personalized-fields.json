@@ -1,0 +1,35 @@
+{
+  "name": "PersonalizedFields",
+  "plural": "PersonalizedFields",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "fieldSetId": {
+      "type": "string",
+      "id": true,
+      "defaultFn": "uuidv4"
+    },
+    "businessId": {
+      "type": "string"
+    },
+    "fields": {
+      "type": [
+        "string"
+      ]
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "createdAt": {
+      "type": "date"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

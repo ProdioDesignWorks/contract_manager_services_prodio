@@ -1,0 +1,36 @@
+{
+  "name": "Contracts",
+  "plural": "Contracts",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "contractId": {
+      "type": "string",
+      "id": true,
+      "defaultFn": "uuidv4"
+    },
+    "businessId": {
+      "type": "string"
+    },
+    "contractName": {
+      "type": "string"
+    },
+    "metaData": {
+      "type": "object"
+    },
+    "createdAt": {
+      "type": "date"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

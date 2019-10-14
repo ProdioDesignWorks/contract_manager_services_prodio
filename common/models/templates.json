@@ -1,0 +1,41 @@
+{
+  "name": "Templates",
+  "plural": "Templates",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "templateId": {
+      "type": "string",
+      "id": true,
+      "defaultFn": "uuidv4"
+    },
+    "templateName": {
+      "type": "string",
+      "default": ""
+    },
+    "templateDescription": {
+      "type": "string",
+      "default": ""
+    },
+    "businessId": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "date"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "metaData": {
+      "type": "object"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}
