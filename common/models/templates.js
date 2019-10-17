@@ -18,6 +18,7 @@ const {
     eSignGenieAPISHandler,
     convertObjectIdToString
 } = require('../../utility/common');
+
 module.exports = function(Templates) {
 
     Templates.remoteMethod(
@@ -54,13 +55,22 @@ module.exports = function(Templates) {
         var parts = String(templateData["templateUrl"]).split('/');
         var pdfName = parts[parts.length - 1];
 
+        let themeColor = "#f4e542";
+        if(!isNull(templateData["themeColor"])){
+            themeColor = templateData["themeColor"];
+        }
+        let templateDesc = "";
+        if(!isNull(templateData["templateDescription"])){
+            templateDesc = templateData["templateDescription"];
+        }
+
         let saveTemplate = {
             "templateUrl":"https://cexchange.s3.ap-south-1.amazonaws.com/courses/lessions/documents/pdf1568202927632_sample.pdf",
             "templateName": pdfName,
             "processTextTags":true,
-            "templateDesc":"",
-            "numberOfParties":10,
-            "themeColor":"#f4e542",
+            "templateDesc": templateDesc,
+            "numberOfParties":1,
+            "themeColor": themeColor,
             "createEmbeddedTemplateSession":true,
             "shareAll":false,
             "redirectURL":"YOUR_PAGE_TO_REDIRECT_USER_FROM_EMBEDDED_SESSION",
@@ -125,9 +135,22 @@ module.exports = function(Templates) {
         if(isNull(templateData["templateId"])){
             return cb(new HttpErrors.BadRequest('Please Provide Template ID', { expose: false }));
         }
+        let updateJson = null;
+
+        if(!isNull(templateData["templateName"])){
+            updateJson["templateName"] = templateData["templateName"];
+        }
+        if(!isNull(templateData["templateDescription"])){
+            updateJson["templateDescription"] = templateData["templateDescription"];
+        }
 
         Templates.findById(templateData["templateId"]).then(response=>{
             if(isValidObject(response)){
+                if(!isNull(updateJson)){
+                    response.updateAttributes(updateJson).then(res=>{
+                        
+                    })
+                }
                 cb(null,{"templateId": response["templateId"],"embeddedTemplateSessionURL": response["embeddedTemplateSessionURL"] });
             }else{
                 cb(new HttpErrors.InternalServerError("Invalid Template ID.", { expose: false }));

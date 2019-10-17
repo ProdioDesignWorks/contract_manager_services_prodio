@@ -26,11 +26,16 @@ exports.ESIGN_APIS = {
     "FETCH_ALL_TEMPLATES": eSignBaseURL+"templates/list",
     "FETCH_TEMPLATE_DETAILS": eSignBaseURL+"templates/mytemplate?templateId={{TEMPLATE_ID}}",
     "SEND_CONTRACT": eSignBaseURL+"folders/createfolder",
+    "CREATE_CONTRACT": eSignBaseURL+"folders/createfolder",
+    "DOWNLOAD_CONTRACT": eSignBaseURL+"folders/download?folderId={{FOLDER_ID}}",
 }
 
 exports.ESIGN_TERMS = {
     "CREATE_ACCOUNT": "CREATE_ACCOUNT",
-    "CREATE_TEMPLATE":"CREATE_TEMPLATE"
+    "CREATE_TEMPLATE":"CREATE_TEMPLATE",
+    "SEND_CONTRACT": "SEND_CONTRACT",
+    "CREATE_CONTRACT": "CREATE_CONTRACT",
+    "DOWNLOAD_CONTRACT": "DOWNLOAD_CONTRACT"
 }
 
 exports.config = config;
