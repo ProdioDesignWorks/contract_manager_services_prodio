@@ -25,8 +25,8 @@ exports.ESIGN_APIS = {
     "CREATE_TEMPLATE": eSignBaseURL+"templates/createtemplate",
     "FETCH_ALL_TEMPLATES": eSignBaseURL+"templates/list",
     "FETCH_TEMPLATE_DETAILS": eSignBaseURL+"templates/mytemplate?templateId={{TEMPLATE_ID}}",
-    "SEND_CONTRACT": eSignBaseURL+"folders/createfolder",
-    "CREATE_CONTRACT": eSignBaseURL+"folders/createfolder",
+    "SEND_CONTRACT": eSignBaseURL+"templates/createFolder",
+    "CREATE_CONTRACT": eSignBaseURL+"templates/createFolder",
     "DOWNLOAD_CONTRACT": eSignBaseURL+"folders/download?folderId={{FOLDER_ID}}",
 }
 

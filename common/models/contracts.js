@@ -82,8 +82,13 @@ module.exports = function(Contracts) {
 
         Contracts.app.models.Templates.find({"where":{"templateId":{"inq":contractData["templateIds"]}},"fields":["template"]}).then(templatesList=>{
             if(isArray(templatesList)){
+                templatesList = JSON.parse(JSON.stringify(templatesList));
+
                 asyncFunc.each(templatesList,function(item,clb){
-                    templateIds.push(item["template"]["templateId"]);
+                    if(!isNull(item["template"])){
+                        templateIds.push(item["template"]["templateId"]);
+                    }
+                    
                     clb();
                 },function(){
                     createContract(contractData,templateIds).then(res=>{
@@ -116,11 +121,14 @@ module.exports = function(Contracts) {
             };
 
             Contracts.create(saveContract).then(res=>{
-                resolve(res)
+                sendContract(contractData,res,false).then(response=>{
+                    resolve(res);
+                }).catch(err=>{
+                    reject(err);
+                })
             }).catch(err=>{
                 reject(err);
             })
-
         })
     }
 
@@ -303,8 +311,10 @@ module.exports = function(Contracts) {
                 //cb(null,templateResponse);
                 if(templateResponse["success"]){
                     if(templateResponse["body"]["result"] === "success"){
-                        contractInfo.updateAttributes({"metaData": templateResponse["body"] }).then(res=>{
-                            resolve(res);
+                        let folderAccessURL = templateResponse["body"]["folder"]["folderRecipientParties"][0]["folderAccessURL"];
+
+                        contractInfo.updateAttributes({"contractUrl":folderAccessURL,"metaData": templateResponse["body"] }).then(res=>{
+                            resolve(templateResponse["body"]);
                         }).catch(err=>{
                             reject(err);
                         })
@@ -386,7 +396,8 @@ module.exports = function(Contracts) {
                 //cb(null,templateResponse);
                 if(templateResponse["success"]){
                     if(templateResponse["body"]["result"] === "success"){
-                        
+                        console.log(templateResponse["body"]);
+                        cb(null,templateResponse["body"]);
                     }else{
                         reject(templateResponse["body"]["error_description"]);
                     }
@@ -395,7 +406,6 @@ module.exports = function(Contracts) {
                 }
             }).catch(err=>{
                 reject(err);
-                //cb(new HttpErrors.InternalServerError((err), { expose: false }));
             })
         }).catch(err=>{
             cb(new HttpErrors.InternalServerError((err), { expose: false }));
