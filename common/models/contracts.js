@@ -173,7 +173,7 @@ module.exports = function(Contracts) {
 
         contractData["bizPayload"] = bizPayload;
 
-        let updateJson = null;
+        let updateJson = {};
 
         if(!isNull(contractData["receivers"])){
 
