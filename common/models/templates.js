@@ -65,7 +65,7 @@ module.exports = function(Templates) {
         }
 
         let saveTemplate = {
-            "templateUrl":"https://cexchange.s3.ap-south-1.amazonaws.com/courses/lessions/documents/pdf1568202927632_sample.pdf",
+            "templateUrl": templateData["templateUrl"],
             "templateName": pdfName,
             "processTextTags":true,
             "templateDesc": templateDesc,
@@ -73,7 +73,7 @@ module.exports = function(Templates) {
             "themeColor": themeColor,
             "createEmbeddedTemplateSession":true,
             "shareAll":false,
-            "redirectURL":"YOUR_PAGE_TO_REDIRECT_USER_FROM_EMBEDDED_SESSION",
+            "redirectURL": templateData["redirectURL"],
             "hideMoreAction": true,
             "hideShareWithAll": true,
             "hideAddParty": true,
@@ -90,6 +90,7 @@ module.exports = function(Templates) {
                     templateModel["createdAt"] = new Date();
                     templateModel["templateName"] = templateData["templateName"];
                     templateModel["templateDescription"] = templateData["templateDescription"];
+                    templateModel["toolTemplateId"] = templateResponse["body"]["template"]["templateId"];
                     
                     Templates.create(templateModel).then(response=>{
                         cb(null,{"templateId": response["templateId"],"templateName": response["templateName"],"createdAt": response["createdAt"] ,"embeddedTemplateSessionURL": response["embeddedTemplateSessionURL"] });

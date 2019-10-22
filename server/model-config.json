@@ -28,5 +28,9 @@
   "PersonalizedFields": {
     "dataSource": "db",
     "public": true
+  },
+  "BizProfile": {
+    "dataSource": "db",
+    "public": true
   }
 }
