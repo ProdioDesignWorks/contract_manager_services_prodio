@@ -20,6 +20,7 @@ const {
 } = require('../../utility/common');
 
 const asyncFunc = require('async');
+const axios = require('axios');
 
 module.exports = function(Contracts) {
 
@@ -59,6 +60,12 @@ module.exports = function(Contracts) {
         if(isNull(contractData["businessId"])){
             return cb(new HttpErrors.BadRequest('Please Provide Business Id', { expose: false }));
         }
+        let bizPayload = {};
+        if(!isNull(contractData["metaData"])){
+            bizPayload = contractData["metaData"];
+        }
+
+        contractData["bizPayload"] = bizPayload;
 
         if(isNull(contractData["receivers"])){
             return cb(new HttpErrors.BadRequest('Please Provide Receiver Info', { expose: false }));
@@ -116,6 +123,7 @@ module.exports = function(Contracts) {
                 "templateIds": templateIds,
                 "receivers": contractData["receivers"],
                 "fields": contractData["customFields"],
+                "bizPayload": contractData["bizPayload"],
                 "isActive": true,
                 "createdAt": new Date()
             };
@@ -157,6 +165,13 @@ module.exports = function(Contracts) {
         if(isNull(contractData["contractId"])){
             return cb(new HttpErrors.BadRequest('Please Provide Contract ID', { expose: false }));
         }
+
+        let bizPayload = {};
+        if(!isNull(contractData["metaData"])){
+            bizPayload = contractData["metaData"];
+        }
+
+        contractData["bizPayload"] = bizPayload;
 
         let updateJson = null;
 
@@ -289,7 +304,7 @@ module.exports = function(Contracts) {
             let contractJson = {
                 "folderName": contractInfo["contractName"] ,
                 "templateIds": contractInfo["templateIds"],
-                "createEmbeddedSendingSession":false,
+                "createEmbeddedSendingSession":true,
                 "fixRecipientParties":true,
                 "fixDocuments":true,
                 "sendSuccessUrl": (!isNull(contractRequestBody["successUrl"]))?contractRequestBody["successUrl"]:"" ,
@@ -311,9 +326,11 @@ module.exports = function(Contracts) {
                 //cb(null,templateResponse);
                 if(templateResponse["success"]){
                     if(templateResponse["body"]["result"] === "success"){
-                        let folderAccessURL = templateResponse["body"]["folder"]["folderRecipientParties"][0]["folderAccessURL"];
+                        let folderAccessURLAdmin = templateResponse["body"]["embeddedSessionURL"];
+                        let folderAccessURLClient = templateResponse["body"]["folder"]["folderRecipientParties"][0]["folderAccessURL"];
+                        let folderId = templateResponse["body"]["folder"]["folderId"];
 
-                        contractInfo.updateAttributes({"contractUrl":folderAccessURL,"metaData": templateResponse["body"] }).then(res=>{
+                        contractInfo.updateAttributes({"toolContractId": folderId ,"contractUrlForAdmin":folderAccessURLAdmin,"contractUrlForClient":folderAccessURLClient,"metaData": templateResponse["body"] }).then(res=>{
                             resolve(templateResponse["body"]);
                         }).catch(err=>{
                             reject(err);
@@ -481,6 +498,65 @@ module.exports = function(Contracts) {
             cb(new HttpErrors.InternalServerError((err), { expose: false }));
         })
     }
+
+
+    Contracts.remoteMethod(
+        'decodeWebHook', {
+            http: {
+                verb: 'post'
+            },
+            description: ["This request will provide transaction details"],
+            accepts: [
+                { arg: 'webHookData', type: 'object', required: false, http: { source: 'body' }},
+            ],
+            returns: {
+                type: 'object',
+                root: true
+            }
+        }
+    );
+
+    Contracts.decodeWebHook = function(webHookData, cb) {
+        if(!isNull(webHookData["data"])){
+            if(!isNull(webHookData["data"]["folder"])){
+                if(!isNull(webHookData["data"]["folder"]["folderId"])){
+                    let folderId = webHookData["data"]["folder"]["folderId"];
+                    webHookData["event_name"] = String(webHookData["event_name"]).replace("folder","contract");
+
+                    Contracts.findOne({"where":{"toolContractId": folderId }}).then(contractInfo=>{
+                        if(isValidObject(contractInfo)){
+                            let businessId = contractInfo["businessId"];
+                            Contracts.app.models.BizProfile.findOne({"where":{"businessId":businessId}}).then(bizData=>{
+                                let webhookUrl = bizData["webhookUrl"];
+                                if(!isNull(webhookUrl)){
+                                    webHookData["contractId"] = contractInfo["contractId"];
+                                    webHookData["bizPayload"] = contractInfo["bizPayload"];
+                                    axios.post(webhookUrl, webHookData)
+                                      .then(function (response) {
+                                        console.log(response);
+                                        cb(null,{"success":true});
+                                      })
+                                      .catch(function (error) {
+                                        cb(null,{"success":true});
+                                      });
+                                }else{
+                                    cb(null,{"success":true});
+                                }
+                            })
+                        }else{
+                            cb(null,{"success":true});
+                        }
+                    })
+                }else{
+                    cb(null,{"success":true});
+                }
+            }else{ cb(null,{"success":true}); }
+        }else{
+            cb(null,{"success":true});
+        }
+
+    }
+
 
 
 

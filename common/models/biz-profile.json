@@ -1,29 +1,22 @@
 {
-  "name": "Contracts",
-  "plural": "Contracts",
+  "name": "BizProfile",
+  "plural": "BizProfile",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "properties": {
-    "contractId": {
+    "bizProfileId": {
       "type": "string",
       "id": true,
       "defaultFn": "uuidv4"
     },
-    "toolContractId": {
-      "type": "string",
-      "default": ""
-    },
     "businessId": {
       "type": "string"
     },
-    "contractName": {
+    "webhookUrl": {
       "type": "string"
-    },
-    "metaData": {
-      "type": "object"
     },
     "createdAt": {
       "type": "date"

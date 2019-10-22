@@ -12,6 +12,10 @@
       "id": true,
       "defaultFn": "uuidv4"
     },
+    "toolTemplateId": {
+      "type": "string",
+      "default": ""
+    },
     "templateName": {
       "type": "string",
       "default": ""
