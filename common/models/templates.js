@@ -136,7 +136,7 @@ module.exports = function(Templates) {
         if(isNull(templateData["templateId"])){
             return cb(new HttpErrors.BadRequest('Please Provide Template ID', { expose: false }));
         }
-        let updateJson = null;
+        let updateJson = {};
 
         if(!isNull(templateData["templateName"])){
             updateJson["templateName"] = templateData["templateName"];
@@ -226,7 +226,7 @@ module.exports = function(Templates) {
         Templates.findById(templateData["templateId"]).then(response=>{
             if(isValidObject(response)){
                 response.updateAttributes({"isActive":false}).then(res=>{
-                    cb(null,res);
+                    cb(null,{"isDeleted":true,"templateId":templateData["templateId"]});
                 })
             }else{
                 cb(new HttpErrors.InternalServerError("Invalid Template ID.", { expose: false }));
