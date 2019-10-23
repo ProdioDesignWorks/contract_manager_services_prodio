@@ -304,7 +304,8 @@ module.exports = function(Contracts) {
             let contractJson = {
                 "folderName": contractInfo["contractName"] ,
                 "templateIds": contractInfo["templateIds"],
-                "createEmbeddedSendingSession":true,
+                "createEmbeddedSendingSession":false,
+                "createEmbeddedSigningSession": true,
                 "fixRecipientParties":true,
                 "fixDocuments":true,
                 "sendSuccessUrl": (!isNull(contractRequestBody["successUrl"]))?contractRequestBody["successUrl"]:"" ,
@@ -317,6 +318,18 @@ module.exports = function(Contracts) {
                 "hideAddPartiesOption": true
             };
 
+            let embeddedSignersEmailIds = [];
+            asyncFunc.each(contractInfo["receivers"],function(item,clb){
+                if(item){
+                    if(!isNull(item["emailId"])){
+                        embeddedSignersEmailIds.push(item["emailId"]);
+                    }
+                }
+                clb();
+            },function(){
+                contractJson["embeddedSignersEmailIds"] = embeddedSignersEmailIds;
+            });
+
             if(sendNow){ contractJson["sendNow"] = true; }
             else{
                 contractJson["sendNow"] = false;
@@ -326,9 +339,16 @@ module.exports = function(Contracts) {
                 //cb(null,templateResponse);
                 if(templateResponse["success"]){
                     if(templateResponse["body"]["result"] === "success"){
-                        let folderAccessURLAdmin = templateResponse["body"]["embeddedSessionURL"];
-                        let folderAccessURLClient = templateResponse["body"]["folder"]["folderRecipientParties"][0]["folderAccessURL"];
+                        let folderAccessURLAdmin = templateResponse["body"]["embeddedSigningSessions"][0]["embeddedSessionURL"];
+                        let folderAccessURLClient = templateResponse["body"]["embeddedSigningSessions"][1]["embeddedSessionURL"];
                         let folderId = templateResponse["body"]["folder"]["folderId"];
+
+                        let embeddedSigningSessions = templateResponse["body"]["embeddedSigningSessions"];
+                        // asyncFunc.each(embeddedSigningSessions,function(item,clb){
+
+                        // },function(){
+
+                        // })
 
                         contractInfo.updateAttributes({"toolContractId": folderId ,"contractUrlForAdmin":folderAccessURLAdmin,"contractUrlForClient":folderAccessURLClient,"metaData": templateResponse["body"] }).then(res=>{
                             resolve(templateResponse["body"]);
