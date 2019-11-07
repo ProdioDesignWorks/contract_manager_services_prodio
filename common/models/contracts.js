@@ -63,6 +63,13 @@ module.exports = function(Contracts) {
             contractData["businessId"] = convertObjectIdToString(contractData["businessId"]);
         }
 
+        contractData["userId"] = "";
+
+        if(isNull(contractData["userId"])){
+        }else{
+            contractData["userId"] = convertObjectIdToString(contractData["userId"]);
+        }
+
 
         let bizPayload = {};
         if(!isNull(contractData["metaData"])){
@@ -124,6 +131,7 @@ module.exports = function(Contracts) {
                 "contractName": contractData["contractName"],
                 "originalTemplateIds": contractData["templateIds"],
                 "businessId": contractData["businessId"],
+                "userId": (contractData["userId"])?contractData["userId"]:"",
                 "templateIds": templateIds,
                 "receivers": contractData["receivers"],
                 "fields": contractData["customFields"],
@@ -176,6 +184,10 @@ module.exports = function(Contracts) {
             contractData["businessId"] = convertObjectIdToString(contractData["businessId"]);
         }
 
+        if(!isNull(contractData["userId"])){
+            contractData["userId"] = convertObjectIdToString(contractData["userId"]);
+        }
+
         let bizPayload = {};
         if(!isNull(contractData["metaData"])){
             bizPayload = contractData["metaData"];
@@ -206,6 +218,11 @@ module.exports = function(Contracts) {
         if(!isNull(contractData["contractName"])){
             updateJson["contractName"] = contractData["contractName"];
         }
+
+        if(!isNull(contractData["userId"])){
+            updateJson["userId"] = contractData["userId"];
+        }
+
         if(!isNull(contractData["templateIds"])){
             if(isArray(contractData["templateIds"])){
                 if( (contractData["templateIds"]).length ){
@@ -558,11 +575,18 @@ module.exports = function(Contracts) {
             contractData = contractData["meta"];
         }
         
+        let whereFilter = {"isActive":true};
         if(isNull(contractData["businessId"])){
             return cb(new HttpErrors.BadRequest('Please Provide Business ID', { expose: false }));
+        }else{
+            whereFilter["businessId"] = convertObjectIdToString(contractData["businessId"]);
         }
 
-        Contracts.find({"where":{"businessId": convertObjectIdToString(contractData["businessId"]),"isActive":true},"include":[{relation:'Users'}],"fields":["contractId","contractName"]}).then(allContracts=>{
+        if(!isNull(contractData["userId"])){
+            whereFilter["userId"] = convertObjectIdToString(contractData["userId"]);
+        }
+
+        Contracts.find({"where":whereFilter,"include":[{relation:'Users'}],"fields":["contractId","contractName","Users"]}).then(allContracts=>{
             cb(null,allContracts);
         }).catch(err=>{
             cb(new HttpErrors.InternalServerError((err), { expose: false }));
@@ -647,6 +671,7 @@ module.exports = function(Contracts) {
                             });
                         },function(){
                             funUpdateAllSigners(allContracts);
+                            return cb(null,{"success":true});
                         })
                     }
                 }
