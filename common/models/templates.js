@@ -53,6 +53,10 @@ module.exports = function(Templates) {
         if(isNull(templateData["businessId"])){
             return cb(new HttpErrors.BadRequest('Please Provide Template Name', { expose: false }));
         }
+        let userId = "";
+        if(!isNull(templateData["userId"])){
+            userId = convertObjectIdToString(templateData["userId"]);
+        }
 
         var parts = String(templateData["templateUrl"]).split('/');
         var pdfName = parts[parts.length - 1];
@@ -93,6 +97,10 @@ module.exports = function(Templates) {
                     templateModel["templateName"] = templateData["templateName"];
                     templateModel["templateDescription"] = templateData["templateDescription"];
                     templateModel["toolTemplateId"] = templateResponse["body"]["template"]["templateId"];
+                    templateModel["templateUrl"] = templateData["templateUrl"];
+                    templateModel["metaData"] = saveTemplate;
+                    templateModel["userId"] = userId;
+                    
                     
                     Templates.create(templateModel).then(response=>{
                         cb(null,{"templateId": response["templateId"],"templateName": response["templateName"],"createdAt": response["createdAt"] ,"embeddedTemplateSessionURL": response["embeddedTemplateSessionURL"] });
@@ -138,7 +146,7 @@ module.exports = function(Templates) {
         if(isNull(templateData["templateId"])){
             return cb(new HttpErrors.BadRequest('Please Provide Template ID', { expose: false }));
         }
-        let updateJson = {};
+        let updateJson = {}; let calleSign = false;
 
         if(!isNull(templateData["templateName"])){
             updateJson["templateName"] = templateData["templateName"];
@@ -146,15 +154,41 @@ module.exports = function(Templates) {
         if(!isNull(templateData["templateDescription"])){
             updateJson["templateDescription"] = templateData["templateDescription"];
         }
+        if(!isNull(templateData["userId"])){
+            updateJson["userId"] = convertObjectIdToString(templateData["userId"]);
+        }
+        if(!isNull(templateData["templateUrl"])){
+            updateJson["templateUrl"] = templateData["templateUrl"];
+            calleSign = true;
+        }
 
         Templates.findById(templateData["templateId"]).then(response=>{
             if(isValidObject(response)){
                 if(!isNull(updateJson)){
                     response.updateAttributes(updateJson).then(res=>{
-                        
+                        if(calleSign){
+                            let metaData = response["metaData"];
+                            metaData["templateUrl"] = templateData["templateUrl"];
+                            eSignGenieAPISHandler.funCallApi(ESIGN_TERMS["CREATE_TEMPLATE"],metaData,"POST").then(templateResponse=>{
+                                if(templateResponse["success"]){
+                                    if(templateResponse["body"]["result"] === "success"){
+                                        let embeddedTemplateSessionURL = templateResponse["body"]["embeddedTemplateSessionURL"];
+                                        response.updateAttributes({"embeddedTemplateSessionURL":embeddedTemplateSessionURL}).then(res=>{
+                                            return cb(null,{"templateId": response["templateId"],"embeddedTemplateSessionURL": embeddedTemplateSessionURL });
+                                        });
+                                    }else{
+                                        return cb(new HttpErrors.InternalServerError(templateResponse["body"]["error_description"], { expose: false }));
+                                    }
+                                }else{
+                                    return cb(new HttpErrors.InternalServerError(JSON.stringify(templateResponse), { expose: false }));
+                                }
+                            });
+                        }else{
+                            return cb(null,{"templateId": response["templateId"],"embeddedTemplateSessionURL": response["embeddedTemplateSessionURL"] });
+                        }
                     })
                 }
-                cb(null,{"templateId": response["templateId"],"embeddedTemplateSessionURL": response["embeddedTemplateSessionURL"] });
+                
             }else{
                 cb(new HttpErrors.InternalServerError("Invalid Template ID.", { expose: false }));
             }
@@ -258,15 +292,21 @@ module.exports = function(Templates) {
         if (!isNull(templateData["meta"])) {
             templateData = templateData["meta"];
         }
-        
+        let whereFilter = {"isActive":true};
         if(isNull(templateData["businessId"])){
             return cb(new HttpErrors.BadRequest('Please Provide Business ID', { expose: false }));
+        }else{
+            whereFilter["businessId"] = convertObjectIdToString(templateData["businessId"]);
         }
 
-        Templates.find({"where":{"businessId": convertObjectIdToString(templateData["businessId"]) },"fields":["templateId","embeddedTemplateSessionURL","templateName","templateDescription","isActive","createdAt"]}).then(templatesRecords=>{
-            cb(null,templatesRecords)
+        if(!isNull(templateData["userId"])){
+            whereFilter["userId"] = convertObjectIdToString(templateData["userId"]);
+        }
+
+        Templates.find({"where":whereFilter,"fields":["templateId","embeddedTemplateSessionURL","templateName","templateDescription","isActive","createdAt"]}).then(templatesRecords=>{
+            return cb(null,templatesRecords);
         }).catch(err=>{
-            cb(new HttpErrors.InternalServerError((err), { expose: false }));
+            return cb(new HttpErrors.InternalServerError((err), { expose: false }));
         })
     }
 
