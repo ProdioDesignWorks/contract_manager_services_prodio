@@ -30,6 +30,17 @@ function funCallESignAPIs(actionName, requestData, apiMethod) {
             }
         }
 
+        let actionURL = ESIGN_APIS[actionName];
+
+        if(requestData){
+            if(!isNull(requestData["templateId"])){
+                actionURL = String(actionURL).replace("{{TEMPLATE_ID}}",requestData["templateId"]);
+            }
+            if(!isNull(requestData["folderId"])){
+                actionURL = String(actionURL).replace("{{FOLDER_ID}}",requestData["folderId"]);
+            }
+        }
+
         axios.post(ESIGN_APIS["GET_ACCESS_TOKEN"], querystring.stringify(requestBody), headerBody)
           .then((result) => {
             // Do somthing
@@ -41,7 +52,7 @@ function funCallESignAPIs(actionName, requestData, apiMethod) {
                 // Call Actual API
 
                 var requestObj = {
-                    url: ESIGN_APIS[actionName],
+                    url: actionURL,
                     headers: {
                         'Authorization': 'Bearer ' + access_token,
                         'content-type': 'application/json',

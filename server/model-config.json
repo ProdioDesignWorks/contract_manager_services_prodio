@@ -32,5 +32,9 @@
   "BizProfile": {
     "dataSource": "db",
     "public": true
+  },
+  "UserContracts": {
+    "dataSource": "db",
+    "public": true
   }
 }

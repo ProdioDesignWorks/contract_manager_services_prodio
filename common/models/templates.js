@@ -19,6 +19,8 @@ const {
     convertObjectIdToString
 } = require('../../utility/common');
 
+const asyncFunc = require('async');
+
 module.exports = function(Templates) {
 
     Templates.remoteMethod(
@@ -263,6 +265,68 @@ module.exports = function(Templates) {
 
         Templates.find({"where":{"businessId": convertObjectIdToString(templateData["businessId"]) },"fields":["templateId","embeddedTemplateSessionURL","templateName","templateDescription","isActive","createdAt"]}).then(templatesRecords=>{
             cb(null,templatesRecords)
+        }).catch(err=>{
+            cb(new HttpErrors.InternalServerError((err), { expose: false }));
+        })
+    }
+
+
+    Templates.remoteMethod(
+        'checkSigningFields', {
+            http: {
+                verb: 'post'
+            },
+            description: ["This request will provide transaction details"],
+            accepts: [
+                { arg: 'templateData', type: 'object', required: false, http: { source: 'body' }},
+            ],
+            returns: {
+                type: 'object',
+                root: true
+            }
+        }
+    );
+
+    Templates.checkSigningFields = function(templateData, cb) {
+        if (!isNull(templateData["meta"])) {
+            templateData = templateData["meta"];
+        }
+        
+        if(isNull(templateData["templateId"])){
+            return cb(new HttpErrors.BadRequest('Please Provide Template ID', { expose: false }));
+        }
+
+        Templates.findById(templateData["templateId"]).then(response=>{
+            if(isValidObject(response)){
+
+                let saveTemplate = {
+                    "templateId": response["toolTemplateId"]
+                };
+
+                eSignGenieAPISHandler.funCallApi(ESIGN_TERMS["FETCH_TEMPLATE_DETAILS"],saveTemplate,"GET").then(templateResponse=>{
+                    if(isValidObject(templateResponse)){
+                        let templateFields = templateResponse["body"]["template"]["allfields"];
+                        let signingFieldsCount = 0;
+                        asyncFunc.each(templateFields,function(item,clb){
+                            if(item["fieldType"] === "signfield" || item["fieldType"] === "s" || item["fieldType"] === "signature" ){
+                                signingFieldsCount++;
+                            }
+                            clb();
+                        },function(){
+                            if(parseInt(signingFieldsCount) < 2 ){
+                                return cb(null,{"signer_added":true});
+                            }else{
+                                return cb(null,{"signer_added":false});
+                            }
+                        });
+
+                    }else{
+
+                    }
+                });
+            }else{
+                cb(new HttpErrors.InternalServerError("Invalid Template ID.", { expose: false }));
+            }
         }).catch(err=>{
             cb(new HttpErrors.InternalServerError((err), { expose: false }));
         })

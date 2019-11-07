@@ -1,29 +1,29 @@
 {
-  "name": "Contracts",
-  "plural": "Contracts",
+  "name": "UserContracts",
+  "plural": "UserContracts",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "properties": {
-    "contractId": {
+    "userContractId": {
       "type": "string",
       "id": true,
       "defaultFn": "uuidv4"
     },
-    "toolContractId": {
+    "userId": {
+      "type": "string"
+    },
+    "userEmail": {
+      "type": "string"
+    },
+    "signStatus": {
       "type": "string",
-      "default": ""
+      "default":"NotSigned"
     },
-    "businessId": {
+    "contractId": {
       "type": "string"
-    },
-    "contractName": {
-      "type": "string"
-    },
-    "metaData": {
-      "type": "object"
     },
     "createdAt": {
       "type": "date"
@@ -35,9 +35,9 @@
   },
   "validations": [],
   "relations": {
-    "Users": {
-      "type": "hasMany",
-      "model": "UserContracts",
+    "ContractInfo": {
+      "type": "belongsTo",
+      "model": "Contracts",
       "foreignKey": "contractId"
     }
   },
