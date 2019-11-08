@@ -370,7 +370,7 @@ module.exports = function(Contracts) {
                         let folderAccessURLClient = templateResponse["body"]["embeddedSigningSessions"][1]["embeddedSessionURL"];
                         let folderId = templateResponse["body"]["folder"]["folderId"];
 
-                        let folderRecipientParties = templateResponse["body"]["folderRecipientParties"];
+                        let folderRecipientParties = templateResponse["body"]["folder"]["folderRecipientParties"];
                         let contractUrls = [];
                         asyncFunc.each(folderRecipientParties,function(item,clb){
                             contractUrls.push({"firstName":item["partyDetails"]["firstName"],"lastName":item["partyDetails"]["lastName"],"emailId":item["partyDetails"]["emailId"],"contractUrl": item["folderAccessURL"] })
