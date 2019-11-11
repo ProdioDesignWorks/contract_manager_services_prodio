@@ -63,9 +63,10 @@ module.exports = function(Contracts) {
             contractData["businessId"] = convertObjectIdToString(contractData["businessId"]);
         }
 
-        contractData["userId"] = "";
+        
 
         if(isNull(contractData["userId"])){
+            contractData["userId"] = "";
         }else{
             contractData["userId"] = convertObjectIdToString(contractData["userId"]);
         }
