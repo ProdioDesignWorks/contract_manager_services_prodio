@@ -366,8 +366,8 @@ module.exports = function(Contracts) {
                 //cb(null,templateResponse);
                 if(templateResponse["success"]){
                     if(templateResponse["body"]["result"] === "success"){
-                        let folderAccessURLAdmin = templateResponse["body"]["embeddedSigningSessions"][0]["embeddedSessionURL"];
-                        let folderAccessURLClient = templateResponse["body"]["embeddedSigningSessions"][1]["embeddedSessionURL"];
+                        //let folderAccessURLAdmin = templateResponse["body"]["folder"]["embeddedSigningSessions"][0]["embeddedSessionURL"];
+                        //let folderAccessURLClient = templateResponse["body"]["folder"]["embeddedSigningSessions"][1]["embeddedSessionURL"];
                         let folderId = templateResponse["body"]["folder"]["folderId"];
 
                         let folderRecipientParties = templateResponse["body"]["folder"]["folderRecipientParties"];
