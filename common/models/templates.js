@@ -354,9 +354,9 @@ module.exports = function(Templates) {
                             clb();
                         },function(){
                             if(parseInt(signingFieldsCount) < 2 ){
-                                return cb(null,{"signer_added":true});
-                            }else{
                                 return cb(null,{"signer_added":false});
+                            }else{
+                                return cb(null,{"signer_added":true});
                             }
                         });
 

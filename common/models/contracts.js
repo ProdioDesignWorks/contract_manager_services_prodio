@@ -587,7 +587,7 @@ module.exports = function(Contracts) {
             whereFilter["userId"] = convertObjectIdToString(contractData["userId"]);
         }
 
-        Contracts.find({"where":whereFilter,"include":[{relation:'Users'}],"fields":["contractId","contractName","Users"]}).then(allContracts=>{
+        Contracts.find({"where":whereFilter,"include":[{relation:'Users'}],"fields":["contractId","createdAt","isActive","contractName","Users"]}).then(allContracts=>{
             cb(null,allContracts);
         }).catch(err=>{
             cb(new HttpErrors.InternalServerError((err), { expose: false }));
