@@ -75,7 +75,7 @@ module.exports = function(Templates) {
             "templateName": pdfName,
             "processTextTags":true,
             "templateDesc": templateDesc,
-            "numberOfParties":1,
+            "numberOfParties":2,
             "themeColor": themeColor,
             "createEmbeddedTemplateSession":true,
             "shareAll":false,

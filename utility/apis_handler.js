@@ -64,6 +64,8 @@ function funCallESignAPIs(actionName, requestData, apiMethod) {
                 if(apiMethod=="POST"){
                     requestObj["body"] = requestData;
                 }
+
+                console.log("requestObj ==>",requestObj);
     
                 request(requestObj, function(err, response) {
                     if (err) {
