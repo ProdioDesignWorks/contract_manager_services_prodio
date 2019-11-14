@@ -633,23 +633,6 @@ module.exports = function(Contracts) {
     }
 
 
-
-    Contracts.remoteMethod(
-        'decodeWebHook', {
-            http: {
-                verb: 'post'
-            },
-            description: ["This request will provide transaction details"],
-            accepts: [
-                { arg: 'webHookData', type: 'object', required: false, http: { source: 'body' }},
-            ],
-            returns: {
-                type: 'object',
-                root: true
-            }
-        }
-    );
-
     function funUpdateSignStatus(folderId,contractId,webhookData){
         let contractJson = {
             "folderId": folderId,
@@ -660,19 +643,22 @@ module.exports = function(Contracts) {
             eSignGenieAPISHandler.funCallApi(ESIGN_TERMS["FETCH_CONTRACT_DETAILS"],contractJson,"GET").then(templateResponse=>{
                 if(templateResponse["success"]){
                     if(templateResponse["body"]["result"] === "success"){
-                        let FolderHistory = templateResponse["body"]["result"]["Folder History"];
+                        let FolderHistory = templateResponse["body"]["Folder History"];
+                        let tmpAllContracts = []; let lcount = 0;
                         asyncFunc.each(allContracts,function(item,clb){
+                            tmpAllContracts.push(item);
                             asyncFunc.each(FolderHistory,function(inneritem,clb2){
                                 if(item["emailId"] === inneritem["email"] ){
-                                    item["signStatus"] = inneritem["action"];
+                                    tmpAllContracts[lcount]["signStatus"] = inneritem["action"];
                                 }
                                 clb2();
                             },function(){
+                                lcount++;
                                 clb();
                             });
                         },function(){
                             funUpdateAllSigners(allContracts);
-                            return cb(null,{"success":true});
+                            //return cb(null,{"success":true});
                         })
                     }
                 }
@@ -695,33 +681,53 @@ module.exports = function(Contracts) {
         });
     }
 
+    Contracts.remoteMethod(
+        'decodeWebHook', {
+            http: {
+                verb: 'post'
+            },
+            description: ["This request will provide transaction details"],
+            accepts: [
+                { arg: 'webHookData', type: 'object', required: false, http: { source: 'body' }},
+            ],
+            returns: {
+                type: 'object',
+                root: true
+            }
+        }
+    );
+
     Contracts.decodeWebHook = function(webHookData, cb) {
+        console.log(" \n \n webHookData : ",webHookData);
         if(!isNull(webHookData["data"])){
             if(!isNull(webHookData["data"]["folder"])){
                 if(!isNull(webHookData["data"]["folder"]["folderId"])){
                     let folderId = webHookData["data"]["folder"]["folderId"];
                     webHookData["event_name"] = String(webHookData["event_name"]).replace("folder","contract");
-
                     Contracts.findOne({"where":{"toolContractId": folderId }}).then(contractInfo=>{
                         if(isValidObject(contractInfo)){
                             funUpdateSignStatus(folderId,contractInfo["contractId"],webHookData["data"]);
 
                             let businessId = contractInfo["businessId"];
                             Contracts.app.models.BizProfile.findOne({"where":{"businessId":businessId}}).then(bizData=>{
-                                let webhookUrl = bizData["webhookUrl"];
-                                if(!isNull(webhookUrl)){
-                                    webHookData["contractId"] = contractInfo["contractId"];
-                                    webHookData["bizPayload"] = contractInfo["bizPayload"];
-                                    axios.post(webhookUrl, webHookData)
-                                      .then(function (response) {
-                                        console.log(response);
+                                if(isValidObject(bizData)){
+                                    let webhookUrl = bizData["webhookUrl"];
+                                    if(!isNull(webhookUrl)){
+                                        webHookData["contractId"] = contractInfo["contractId"];
+                                        webHookData["bizPayload"] = contractInfo["bizPayload"];
+                                        axios.post(webhookUrl, webHookData)
+                                        .then(function (response) {
+                                            console.log(response);
+                                            cb(null,{"success":true});
+                                        })
+                                        .catch(function (error) {
+                                            cb(null,{"success":true});
+                                        });
+                                    }else{
                                         cb(null,{"success":true});
-                                      })
-                                      .catch(function (error) {
-                                        cb(null,{"success":true});
-                                      });
+                                    }
                                 }else{
-                                    cb(null,{"success":true});
+                                    return cb(null,{"success":true});
                                 }
                             })
                         }else{
