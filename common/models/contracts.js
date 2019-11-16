@@ -734,7 +734,7 @@ module.exports = function(Contracts) {
                     webHookData["event_name"] = String(webHookData["event_name"]).replace("folder","contract");
                     Contracts.findOne({"where":{"toolContractId": folderId }}).then(contractInfo=>{
                         if(isValidObject(contractInfo)){
-                            let businessId = contractInfo["businessId"];
+                            let businessId = contractInfo["originalBusinessId"];
                             funUpdateSignStatus(folderId,contractInfo["contractId"],webHookData["data"],businessId,cb);
                             
                         }else{
