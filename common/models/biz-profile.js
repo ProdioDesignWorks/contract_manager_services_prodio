@@ -58,6 +58,7 @@ module.exports = function(Bizprofile) {
             }else{
                 let createJson = {
                     "businessId": convertObjectIdToString(webHookData["businessId"]),
+                    "originalBusinessId": webHookData["businessId"],
                     "webhookUrl": webHookData["webhookUrl"],
                     "createdAt": new Date(),
                     "isActive": true
