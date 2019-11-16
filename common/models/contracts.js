@@ -60,6 +60,7 @@ module.exports = function(Contracts) {
         if(isNull(contractData["businessId"])){
             return cb(new HttpErrors.BadRequest('Please Provide Business Id', { expose: false }));
         }else{
+            contractData["originalBusinessId"] = contractData["businessId"];
             contractData["businessId"] = convertObjectIdToString(contractData["businessId"]);
         }
 
@@ -132,6 +133,7 @@ module.exports = function(Contracts) {
                 "contractName": contractData["contractName"],
                 "originalTemplateIds": contractData["templateIds"],
                 "businessId": contractData["businessId"],
+                "originalBusinessId": contractData["originalBusinessId"],
                 "userId": (contractData["userId"])?contractData["userId"]:"",
                 "templateIds": templateIds,
                 "receivers": contractData["receivers"],
@@ -638,7 +640,8 @@ module.exports = function(Contracts) {
             "folderId": folderId,
             "contractId": contractId
         };
-
+        console.log("businessId",businessId);
+        console.log("contractId",contractId);
         Contracts.app.models.UserContracts.find({"where":{"contractId":contractId,"isActive":true}}).then(allContracts=>{
             eSignGenieAPISHandler.funCallApi(ESIGN_TERMS["FETCH_CONTRACT_DETAILS"],contractJson,"GET").then(templateResponse=>{
                 if(templateResponse["success"]){
@@ -679,6 +682,8 @@ module.exports = function(Contracts) {
                 }
             })
         },function(){
+            console.log("businessId",businessId);
+            console.log("contractId",contractId);
             let webHookData = {};
             Contracts.app.models.UserContracts.find({"where":{"contractId": contractId , "isActive": true}}).then(allContract=>{
 
@@ -726,7 +731,7 @@ module.exports = function(Contracts) {
     );
 
     Contracts.decodeWebHook = function(webHookData, cb) {
-        //console.log(" \n \n webHookData : ",webHookData);
+        console.log(" \n \n webHookData : ",webHookData);
         if(!isNull(webHookData["data"])){
             if(!isNull(webHookData["data"]["folder"])){
                 if(!isNull(webHookData["data"]["folder"]["folderId"])){
