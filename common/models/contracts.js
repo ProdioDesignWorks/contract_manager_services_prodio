@@ -633,7 +633,7 @@ module.exports = function(Contracts) {
     }
 
 
-    function funUpdateSignStatus(folderId,contractId,webhookData){
+    function funUpdateSignStatus(folderId,contractId,webhookData,businessId,cb){
         let contractJson = {
             "folderId": folderId,
             "contractId": contractId
@@ -657,7 +657,7 @@ module.exports = function(Contracts) {
                                 clb();
                             });
                         },function(){
-                            funUpdateAllSigners(allContracts);
+                            funUpdateAllSigners(allContracts,businessId,contractId,cb);
                             //return cb(null,{"success":true});
                         })
                     }
@@ -667,17 +667,45 @@ module.exports = function(Contracts) {
         
     }
 
-    function funUpdateAllSigners(allUserContracts){
+    function funUpdateAllSigners(allUserContracts,businessId,contractId,cb){
         asyncFunc.each(allUserContracts,function(item,clb){
             Contracts.app.models.UserContracts.findById(item["userContractId"]).then(res=>{
                 if(isValidObject(res)){
                     res.updateAttributes({"signStatus": item["signStatus"] }).then(update=>{
-                        
+                        clb();
                     })
+                }else{
+                    clb();
                 }
             })
         },function(){
+            let webHookData = {};
+            Contracts.app.models.UserContracts.find({"where":{"contractId": contractId , "isActive": true}}).then(allContract=>{
 
+                Contracts.app.models.BizProfile.findOne({"where":{"businessId": convertObjectIdToString(businessId),"isActive":true}}).then(bizData=>{
+                    if(isValidObject(bizData)){
+                        let webhookUrl = bizData["webhookUrl"];
+                        if(!isNull(webhookUrl)){
+                            webHookData["contractId"] = contractId;
+                            webHookData["businessId"] = businessId;
+                            webHookData["signers"] = allContract;
+                            
+                            axios.post(webhookUrl, webHookData)
+                            .then(function (response) {
+                                console.log(response);
+                                cb(null,{"success":true});
+                            })
+                            .catch(function (error) {
+                                cb(null,{"success":true});
+                            });
+                        }else{
+                            cb(null,{"success":true});
+                        }
+                    }else{
+                        return cb(null,{"success":true});
+                    }
+                })
+            })
         });
     }
 
@@ -698,7 +726,7 @@ module.exports = function(Contracts) {
     );
 
     Contracts.decodeWebHook = function(webHookData, cb) {
-        console.log(" \n \n webHookData : ",webHookData);
+        //console.log(" \n \n webHookData : ",webHookData);
         if(!isNull(webHookData["data"])){
             if(!isNull(webHookData["data"]["folder"])){
                 if(!isNull(webHookData["data"]["folder"]["folderId"])){
@@ -706,40 +734,19 @@ module.exports = function(Contracts) {
                     webHookData["event_name"] = String(webHookData["event_name"]).replace("folder","contract");
                     Contracts.findOne({"where":{"toolContractId": folderId }}).then(contractInfo=>{
                         if(isValidObject(contractInfo)){
-                            funUpdateSignStatus(folderId,contractInfo["contractId"],webHookData["data"]);
-
                             let businessId = contractInfo["businessId"];
-                            Contracts.app.models.BizProfile.findOne({"where":{"businessId":businessId}}).then(bizData=>{
-                                if(isValidObject(bizData)){
-                                    let webhookUrl = bizData["webhookUrl"];
-                                    if(!isNull(webhookUrl)){
-                                        webHookData["contractId"] = contractInfo["contractId"];
-                                        webHookData["bizPayload"] = contractInfo["bizPayload"];
-                                        axios.post(webhookUrl, webHookData)
-                                        .then(function (response) {
-                                            console.log(response);
-                                            cb(null,{"success":true});
-                                        })
-                                        .catch(function (error) {
-                                            cb(null,{"success":true});
-                                        });
-                                    }else{
-                                        cb(null,{"success":true});
-                                    }
-                                }else{
-                                    return cb(null,{"success":true});
-                                }
-                            })
+                            funUpdateSignStatus(folderId,contractInfo["contractId"],webHookData["data"],businessId,cb);
+                            
                         }else{
-                            cb(null,{"success":true});
+                            return cb(null,{"success":true});
                         }
                     })
                 }else{
-                    cb(null,{"success":true});
+                    return cb(null,{"success":true});
                 }
             }else{ cb(null,{"success":true}); }
         }else{
-            cb(null,{"success":true});
+            return cb(null,{"success":true});
         }
 
     }
