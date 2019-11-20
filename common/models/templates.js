@@ -303,7 +303,7 @@ module.exports = function(Templates) {
             whereFilter["userId"] = convertObjectIdToString(templateData["userId"]);
         }
 
-        Templates.find({"where":whereFilter,"fields":["templateId","embeddedTemplateSessionURL","templateName","templateDescription","isActive","createdAt"]}).then(templatesRecords=>{
+        Templates.find({"where":whereFilter,"order":"createdAt DESC","fields":["templateId","embeddedTemplateSessionURL","templateName","templateDescription","isActive","createdAt"]}).then(templatesRecords=>{
             return cb(null,templatesRecords);
         }).catch(err=>{
             return cb(new HttpErrors.InternalServerError((err), { expose: false }));

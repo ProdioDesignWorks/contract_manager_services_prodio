@@ -589,7 +589,7 @@ module.exports = function(Contracts) {
             whereFilter["userId"] = convertObjectIdToString(contractData["userId"]);
         }
 
-        Contracts.find({"where":whereFilter,"include":[{relation:'Users'}],"fields":["contractId","createdAt","isActive","contractName","Users"]}).then(allContracts=>{
+        Contracts.find({"where":whereFilter,"order":"createdAt DESC","include":[{relation:'Users'}],"fields":["contractId","createdAt","isActive","contractName","Users"]}).then(allContracts=>{
             cb(null,allContracts);
         }).catch(err=>{
             cb(new HttpErrors.InternalServerError((err), { expose: false }));
@@ -626,7 +626,7 @@ module.exports = function(Contracts) {
             return cb(new HttpErrors.BadRequest('Please Provide Business ID', { expose: false }));
         }
 
-        Contracts.app.models.UserContracts.find({"where":{"emailId":contractData["emailId"],"isActive":true,"businessId": convertObjectIdToString(contractData["businessId"]) },"include":[{relation:'ContractInfo'}] }).then(contractsList=>{
+        Contracts.app.models.UserContracts.find({"where":{"emailId":contractData["emailId"],"isActive":true,"businessId": convertObjectIdToString(contractData["businessId"]) },"order":"createdAt DESC","include":[{relation:'ContractInfo'}] }).then(contractsList=>{
             return cb(null,contractsList);
         }).catch(err=>{
             cb(new HttpErrors.InternalServerError((err), { expose: false }));
@@ -694,7 +694,9 @@ module.exports = function(Contracts) {
                             webHookData["contractId"] = contractId;
                             webHookData["businessId"] = businessId;
                             webHookData["signers"] = allContract;
-                            
+                            console.log("webHookData(contractId)",contractId,"===",webHookData["contractId"]);
+                            console.log("webHookData(businessId)",businessId,"===",webHookData["businessId"]);
+                            console.log("webHookData(signers)",allContract,"===",webHookData["signers"]);
                             axios.post(webhookUrl, webHookData)
                             .then(function (response) {
                                 console.log(response);
