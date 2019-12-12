@@ -634,6 +634,39 @@ module.exports = function(Contracts) {
 
     }
 
+    Contracts.remoteMethod(
+        'userAllContracts', {
+            http: {
+                verb: 'post'
+            },
+            description: ["This request will provide transaction details"],
+            accepts: [
+                { arg: 'contractData', type: 'object', required: false, http: { source: 'body' }},
+            ],
+            returns: {
+                type: 'object',
+                root: true
+            }
+        }
+    );
+
+    Contracts.userAllContracts = function(contractData, cb) {
+        if (!isNull(contractData["meta"])) {
+            contractData = contractData["meta"];
+        }
+        
+        if(isNull(contractData["emailId"])){
+            return cb(new HttpErrors.BadRequest('Please Provide Email ID', { expose: false }));
+        }
+
+        Contracts.app.models.UserContracts.find({"where":{"emailId":contractData["emailId"],"isActive":true },"order":"createdAt DESC","include":[{relation:'ContractInfo'}] }).then(contractsList=>{
+            return cb(null,contractsList);
+        }).catch(err=>{
+            cb(new HttpErrors.InternalServerError((err), { expose: false }));
+        })
+
+    }
+
 
     function funUpdateSignStatus(folderId,contractId,webhookData,businessId,cb){
         let contractJson = {
