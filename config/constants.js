@@ -2,10 +2,12 @@ let configFile = './eSignConfig.json';
 console.log(process.env.NODE_ENV);
 
 switch (process.env.NODE_ENV) {
+    case "dev":
     case "development":
         configFile = './eSignConfig.development.json';
     break;
     case "alpha":
+    case "staging":
         configFile = './eSignConfig.alpha.json';
     break;
     case "production":
